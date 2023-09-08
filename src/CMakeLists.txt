@@ -1,6 +1,8 @@
 add_executable(test)
 
-set(source main.cpp)
+set(source main.cpp
+winapp.cpp
+    )
 
 
 set_target_properties(test PROPERTIES BINARY_DIR "./bin")
