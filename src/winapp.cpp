@@ -2,11 +2,10 @@
 #include "winapp.h"
 
 // Main message handler for the sample.
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WindowProc(HWND hWnd, UINT message_type, WPARAM wParam, LPARAM lParam)
 {
     AppListener* listener = reinterpret_cast<AppListener*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-
-    switch (message)
+    switch (message_type)
     {
     case WM_CREATE:
         {
@@ -17,7 +16,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         return 0;
 
     case WM_KEYDOWN:
-        if (listener)
+        if (listener != nullptr)
         {
             listener->OnKeyDown(static_cast<char>(wParam));
         }
@@ -26,14 +25,14 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     case WM_KEYUP:
         if (wParam == VK_ESCAPE)
             PostQuitMessage(0);
-        if (listener)
+        if (listener != nullptr)
         {
             listener->OnKeyUp(static_cast<char>(wParam));
         }
         return 0;
 
     case WM_PAINT:
-        if (listener)
+        if (listener != nullptr)
         {
             listener->OnUpdate();
             listener->OnRender();
@@ -42,12 +41,14 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
     case WM_DESTROY:
         PostQuitMessage(0);
+        if (listener != nullptr)
+            listener->OnDestroy();
         return 0;
     }
-    return DefWindowProc(hWnd, message, wParam, lParam);
+    return DefWindowProc(hWnd, message_type, wParam, lParam);
 }
 
-WindowBuilder::operator WinApp()
+WindowBuilder::operator Window()
 {
     LPCSTR class_name = "Dx12Win32App";
     // Initialize the window class.
@@ -71,10 +72,13 @@ WindowBuilder::operator WinApp()
         nullptr,        // We have no parent window.
         nullptr,        // We aren't using menus.
         hInstance, listener);
-    return WinApp{wnd_h};
+    Window result;
+    result.hwnd = wnd_h;
+    result.resolution = resolution;
+    return result;
 }
 
-void WinApp::run()
+void Window::run()
 {
     MSG msg = {};
     while (msg.message != WM_QUIT)

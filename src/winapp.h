@@ -11,10 +11,11 @@ public:
     virtual void OnKeyUp(char ch) = 0;
     virtual void OnUpdate() = 0;
     virtual void OnRender() = 0;
+    virtual void OnDestroy() = 0;
 };
 
 
-class WinApp
+class Window
 {
 public:
     void show(int n_cmd_show)
@@ -22,11 +23,14 @@ public:
         ShowWindow(hwnd, n_cmd_show);
     }
     void run();
+
+    HWND handler() const { return hwnd; }
+    Resolution size() const { return resolution; }
 private:
     friend WindowBuilder;
 
-    WinApp(HWND h) :hwnd{h} {}
     HWND hwnd;
+    Resolution resolution;
 };
 
 struct WindowBuilder
@@ -39,7 +43,7 @@ struct WindowBuilder
     WindowBuilder& with_title(const char* t) { title = t; return *this; }
     WindowBuilder& with_size(Resolution res) { resolution = res; return *this; }
     WindowBuilder& with_listener(AppListener* l) { listener = l; return *this; }
-    operator WinApp(); // cast operator
+    operator Window(); // cast operator
 
     HINSTANCE hInstance;
     LPCSTR title = nullptr;
